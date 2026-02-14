@@ -466,20 +466,18 @@
 
             if (state.view === 'home') {
                 mainContent.innerHTML = `
-                    <div class="flex flex-col items-center space-y-10 animate-fade-in py-10">
-                        <div class="${cardClass} p-8 rounded-[3rem] w-full text-center shadow-sm">
-                            <p class="text-lg italic ${quoteClass} leading-relaxed font-light">"${state.dailyQuote}"</p>
-                        </div>
-                        <div class="relative flex items-center justify-center">
-                            <div id="breath-bg" class="breath-ring absolute rounded-full bg-indigo-50/20 w-48 h-48"></div>
-                            <button onclick="toggleBreathing()" class="relative z-10 w-40 h-40 bg-white rounded-full flex flex-col items-center justify-center shadow-xl border-4 border-white">
-                                <div id="timer-display" class="text-center text-slate-400">
-                                    <i data-lucide="wind" class="mx-auto mb-1 w-8 h-8 opacity-40"></i>
-                                    <p class="text-sm">Start</p>
+                    <div class="flex flex-col items-center animate-fade-in pt-8">
+                        <p class="text-xs ${quoteClass} tracking-wider text-center mb-16 opacity-70 font-light">${state.dailyQuote}</p>
+                        <div class="relative flex items-center justify-center mb-6">
+                            <div id="breath-bg" class="breath-ring absolute rounded-full bg-indigo-100/30 w-48 h-48"></div>
+                            <button onclick="toggleBreathing()" class="relative z-10 w-32 h-32 ${state.isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-white/80'} rounded-full flex flex-col items-center justify-center shadow-lg border">
+                                <div id="timer-display" class="text-center ${state.isDarkMode ? 'text-slate-400' : 'text-slate-400'}">
+                                    <i data-lucide="wind" class="mx-auto mb-1 w-6 h-6 opacity-40"></i>
+                                    <p class="text-xs">呼吸</p>
                                 </div>
                             </button>
-                            <div class="absolute -bottom-12 text-xs text-slate-400 font-light tracking-widest uppercase">4s Inhale / 8s Exhale</div>
                         </div>
+                        <p class="text-[10px] text-slate-400 tracking-widest uppercase opacity-50">4s in · 8s out</p>
                     </div>
                 `;
             }
