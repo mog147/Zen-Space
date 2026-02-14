@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zen Space</title>
+    <!-- Tailwind CSS (Direct CDN) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@300;400;500;700&display=swap');
+
+        body {
+            font-family: 'Zen Maru Gothic', sans-serif;
+        }
+
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        @keyframes fade-in {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-fade-in {
+            animation: fade-in 0.4s ease-out forwards;
+        }
+
+        /* Specialized Glassmorphism */
+        .glass {
+            background: rgba(255, 255, 255, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(10px);
+        }
+
+        .dark-glass {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(51, 65, 85, 0.6);
+            backdrop-filter: blur(10px);
+        }
+
+        /* Breathing Animation */
+        .breath-ring {
+            transition: transform 4s ease-in-out, background-color 4s ease;
+        }
+
+        .inhale {
+            transform: scale(1.5);
+            background-color: rgba(129, 140, 248, 0.3);
+            transition-duration: 4s;
+        }
+
+        .exhale {
+            transform: scale(1);
+            background-color: rgba(129, 140, 248, 0.1);
+            transition-duration: 8s;
+        }
+
+        /* 8s exhale */
+    </style>
+</head>
+
+<body class="transition-colors duration-1000">
+    <!-- Static UI Mask (Shows even if JS fails) -->
+    <div id="app"
+        class="min-h-screen w-full bg-gradient-to-br from-indigo-50 via-white to-pink-50 flex flex-col items-center p-6 transition-all duration-1000 text-slate-800">
+
+        <!-- Header -->
+        <header class="w-full max-w-md flex justify-between items-center mb-6 mt-4 z-10">
+            <h1 class="text-2xl font-light tracking-widest opacity-80 uppercase">Zen Space</h1>
+            <div class="flex gap-2">
+                <button onclick="toggleDarkMode()" class="p-2 rounded-full glass text-indigo-400"><i data-lucide="sun"
+                        class="w-5 h-5"></i></button>
+            </div>
+        </header>
+
+        <!-- Main Content Area -->
+        <main id="main-content" class="w-full max-w-md flex-1 flex flex-col space-y-8 z-10 pb-32">
+            <!-- Loading State -->
+            <div class="flex flex-col items-center justify-center h-full">
+                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-500 mb-2"></div>
+                <div class="text-sm text-slate-400">Loading...</div>
+            </div>
+        </main>
+
+        <!-- Bottom Navigation -->
+        <nav
+            class="fixed bottom-8 w-full max-w-sm glass p-2 rounded-full z-50 flex justify-around items-center shadow-xl">
+            <button onclick="setView('home')" class="nav-btn p-3 rounded-full bg-indigo-50 text-indigo-600"><i
+                    data-lucide="sun" class="w-6 h-6"></i></button>
+            <button onclick="setView('coping')" class="nav-btn p-3 rounded-full text-slate-400"><i
+                    data-lucide="clipboard-list" class="w-6 h-6"></i></button>
+            <button onclick="setView('mood')" class="nav-btn p-3 rounded-full text-slate-400"><i data-lucide="sparkles"
+                    class="w-6 h-6"></i></button>
+        </nav>
+
+        <!-- Modal (Hidden by default) -->
+        <div id="modal-overlay"
+            class="fixed inset-0 z-[60] bg-black/50 backdrop-blur-sm hidden flex items-center justify-center p-6">
+            <div id="modal-content"
+                class="w-full max-w-sm bg-white rounded-[2rem] p-6 shadow-2xl transition-all scale-95 opacity-0">
+                <!-- Injected via JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Logic Script -->
+    <script>
+        // --- Constants & Data ---
+        const DEFAULT_COPING_LIST = [
+            { id: '1', name: "太陽の光を浴びる", category: "Ph：身体", time: "10min" },
+            { id: '2', name: "髪を切りに行く", category: "Ph：身体", time: "60min" },
+            { id: '3', name: "人の作ったごはんを食べる", category: "S：社会的", time: "30min" },
+            { id: '4', name: "やりたいことリストを更新する", category: "B：価値", time: "60min" },
+            { id: '5', name: "漢方を飲む", category: "Ph：身体", time: "30min" },
+            { id: '6', name: "クッキーを食べる", category: "Ph：身体", time: "30min" },
+            { id: '7', name: "深呼吸をする", category: "Ph：身体", time: "5min" },
+            { id: '8', name: "自転車に乗る", category: "Ph：身体", time: "60 min~" },
+            { id: '9', name: "花を飾ってみる", category: "Ph：身体", time: "10min" },
+            { id: '10', name: "大泣きする", category: "A：感情", time: "30min" },
+            { id: '11', name: "布団の中でだらだらする", category: "Ph：身体", time: "60 min~" },
+            { id: '12', name: "デスクを整頓する", category: "Ph：身体", time: "10min" },
+            { id: '13', name: "雑誌を読む", category: "C：認知", time: "30min" },
+            { id: '14', name: "体にいい食事を取る", category: "Ph：身体", time: "30min" },
+            { id: '15', name: "念入りに歯みがきをする", category: "Ph：身体", time: "10min" },
+            { id: '16', name: "美術館にいく", category: "I：想像", time: "60 min~" },
+            { id: '17', name: "SPIGAでパスタを食べる", category: "Ph：身体", time: "60min" },
+            { id: '18', name: "ふわふわに包まる", category: "Ph：身体", time: "5min" },
+            { id: '19', name: "10,000歩ウォーキングする", category: "Ph：身体", time: "60 min~" },
+            { id: '20', name: "鳥の声を聴く", category: "Ph：身体", time: "10min" },
+            { id: '21', name: "遠くを見て目を休める", category: "Ph：身体", time: "5min" },
+            { id: '22', name: "拭き掃除をする", category: "Ph：身体", time: "10min" },
+            { id: '23', name: "街の中の花を探す", category: "Ph：身体", time: "30min" },
+            { id: '24', name: "早い時間に寝てしまう", category: "Ph：身体", time: "60 min~" },
+            { id: '25', name: "昼寝する", category: "Ph：身体", time: "10min" },
+            { id: '26', name: "空気の入れ替えをする", category: "Ph：身体", time: "5min" },
+            { id: '27', name: "近所の神社へ行く", category: "Ph：身体", time: "60 min~" },
+            { id: '28', name: "買い物計画リストを更新する", category: "B：価値", time: "60min" },
+            { id: '29', name: "高い所に登る", category: "Ph：身体", time: "60min" },
+            { id: '30', name: "財布やバッグの中を整理する", category: "Ph：身体", time: "10min" },
+            { id: '31', name: "テレビを消す", category: "Ph：身体", time: "5min" },
+            { id: '32', name: "歩きながらコーヒーを飲む", category: "Ph：身体", time: "30min" },
+            { id: '33', name: "用事をキャンセルする", category: "Ph：身体", time: "30min" },
+            { id: '34', name: "水辺でぼーっとする", category: "Ph：身体", time: "30min" },
+            { id: '35', name: "すっぴんメガネで過ごす", category: "Ph：身体", time: "10min" },
+            { id: '36', name: "スーパー銭湯で半日過ごす", category: "Ph：身体", time: "60min" },
+            { id: '37', name: "だれもいない場所へ行く", category: "Ph：身体", time: "60 min~" },
+            { id: '38', name: "散歩する", category: "Ph：身体", time: "60 min~" },
+            { id: '39', name: "緑の多い場所で過ごす", category: "Ph：身体", time: "60min" },
+            { id: '40', name: "ゆたぽんで首を温める", category: "Ph：身体", time: "30min" },
+            { id: '41', name: "外の空気を思いっきり吸う", category: "Ph：身体", time: "5min" }
+        ];
+
+        const HEALING_STORIES = [
+            "静かな森の中にいます。木漏れ日が優しく降り注ぎ、空気は澄んでいます。足元のしっとりとした苔の感触を感じながら、深呼吸をひとつ。",
+            "夜の海辺に一人で座っています。波の音が一定のリズムで寄せては返し、満月の光が水面に揺れています。心が波と一緒に洗われていきます。",
+            "古い図書館の片隅にある、ふかふかのソファに沈み込んでいます。古い紙の匂いと、静寂だけがあなたを包み込みます。ここでは時間はゆっくり流れます。",
+            "暖かい暖炉の前で、お気に入りの毛布にくるまっています。パチパチとはぜる薪の音と、温かいココアの香り。ただ、この温もりを感じるだけで十分です。",
+            "広大な草原に寝転がっています。見上げると、どこまでも続く青い空。雲がゆっくりと形を変えながら流れていきます。風が頬を優しく撫でていきます。",
+            "猫があなたの膝の上で丸まって眠っています。その温かさと、ゴロゴロという低い音動が、あなたの緊張を少しずつ溶かしていきます。",
+            "雨の日の午後。窓ガラスに当たる雨粒の音を聴きながら、温かい紅茶を飲んでいます。外の世界の喧騒から守られた、あなただけの静かな時間です。",
+            "満天の星空の下、焚き火のそばにいます。星々の瞬きと、揺れる炎のダンス。宇宙の広大さに包まれ、悩み事が小さく感じられます。",
+            "朝露に濡れた庭を歩いています。花の香りが朝の空気に混じり合い、小鳥のさえずりが聞こえます。新しい一日が、清々しく始まります。",
+            "温泉に肩まで浸かっています。湯気が白く立ち上り、手足の先まで温もりが染み渡っていきます。体の力が抜け、ただただ「今」を味わいます。",
+            "焼きたてのパンの香りがするパン屋さんの前にいます。幸せな香りを胸いっぱいに吸い込んで、心がほっこりと温まります。",
+            "夕暮れ時の帰り道、どこからか夕飯のいい匂いがします。懐かしくて優しい、日常の風景があなたを温かく迎え入れてくれます。"
+        ];
+
+        const ADVICES = [
+            "深呼吸をして、今の気持ちをただ眺めてみましょう。",
+            "冷たい水を一杯飲んで、リセットしましょう。",
+            "肩の力を抜いて、5分だけ目を閉じてみてください。",
+            "今の感情を否定せず、「そう感じているんだね」と受け止めてあげて。",
+            "空を見上げて、雲の流れを目で追ってみましょう。",
+            "好きな音楽を1曲だけ、集中して聴いてみませんか？"
+        ];
+
+        const CATEGORIES = ["すべて", "お気に入り", "Ph：身体", "A：感情", "S：社会的", "C：認知", "I：想像", "B：価値"];
+
+        // --- State Management ---
+        const state = {
+            view: 'home',
+            isDarkMode: localStorage.getItem('isDarkMode') === 'true',
+            isBreathing: false,
+            breathPhase: '吸って',
+            timer: 4,
+            copingList: JSON.parse(localStorage.getItem('copingList') || '[]'),
+            favorites: JSON.parse(localStorage.getItem('favorites') || '[]'),
+            dailyQuote: "",
+            searchQuery: "",
+            selectedCategory: "すべて",
+            // CRUD State
+            isModalOpen: false,
+            editingItem: null // null = create mode
+        };
+
+        // Initialize coping list if empty
+        if (state.copingList.length === 0) {
+            state.copingList = DEFAULT_COPING_LIST;
+            localStorage.setItem('copingList', JSON.stringify(state.copingList));
+        }
+
+        // --- Core Functions ---
+
+        function init() {
+            if (state.isDarkMode) document.body.classList.add('dark');
+            updateDailyQuote();
+            applyTheme();
+            render();
+        }
+
+        function updateDailyQuote() {
+            const quotes = [
+                "焦らず、あなたのペースで大丈夫。", "小さな一歩も、立派な前進です。",
+                "自分に優しくする日を作りましょう。", "休むことは、サボることではありません。",
+                "今日は、自分を世界一大切にする日にしよう。"
+            ];
+            state.dailyQuote = quotes[new Date().getDate() % quotes.length];
+        }
+
+        function applyTheme() {
+            const app = document.getElementById('app');
+            const h1 = document.querySelector('h1');
+
+            if (state.isDarkMode) {
+                app.className = "min-h-screen w-full bg-slate-900 flex flex-col items-center p-6 transition-all duration-1000 text-slate-100";
+                if (h1) h1.className = "text-2xl font-light tracking-widest text-indigo-300 opacity-80 uppercase";
+            } else {
+                app.className = "min-h-screen w-full bg-gradient-to-br from-indigo-50 via-white to-pink-50 flex flex-col items-center p-6 transition-all duration-1000 text-slate-800";
+                if (h1) h1.className = "text-2xl font-light tracking-widest text-indigo-900 opacity-80 uppercase";
+            }
+            render();
+        }
+
+        window.setView = function (viewName) {
+            state.view = viewName;
+            state.isBreathing = false;
+            render();
+        };
+
+        window.toggleDarkMode = function () {
+            state.isDarkMode = !state.isDarkMode;
+            localStorage.setItem('isDarkMode', state.isDarkMode);
+            applyTheme();
+        };
+
+        // --- Coping CRUD ---
+        window.openModal = function (itemId = null) {
+            state.editingItem = itemId ? state.copingList.find(i => i.id === itemId) : null;
+            state.isModalOpen = true;
+            render();
+            setTimeout(() => {
+                document.getElementById('modal-overlay').classList.remove('hidden');
+                setTimeout(() => {
+                    const content = document.getElementById('modal-content');
+                    content.classList.remove('scale-95', 'opacity-0');
+                    content.classList.add('scale-100', 'opacity-100');
+                }, 10);
+            }, 0);
+        };
+
+        window.closeModal = function () {
+            const content = document.getElementById('modal-content');
+            content.classList.remove('scale-100', 'opacity-100');
+            content.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => {
+                document.getElementById('modal-overlay').classList.add('hidden');
+                state.isModalOpen = false;
+                render();
+            }, 300);
+        };
+
+        window.saveCopingItem = function () {
+            const name = document.getElementById('item-name').value;
+            const category = document.getElementById('item-category').value;
+            const time = document.getElementById('item-time').value;
+
+            if (!name) { alert("名前を入力してください"); return; }
+
+            if (state.editingItem) {
+                state.copingList = state.copingList.map(i =>
+                    i.id === state.editingItem.id ? { ...i, name, category, time } : i
+                );
+            } else {
+                const newItem = {
+                    id: Date.now().toString(),
+                    name, category, time: time || "10min"
+                };
+                state.copingList.unshift(newItem);
+            }
+            localStorage.setItem('copingList', JSON.stringify(state.copingList));
+            closeModal();
+        };
+
+        window.deleteCopingItem = function (id) {
+            if (confirm("本当に削除しますか？")) {
+                state.copingList = state.copingList.filter(i => i.id !== id);
+                state.favorites = state.favorites.filter(fid => fid !== id);
+                localStorage.setItem('copingList', JSON.stringify(state.copingList));
+                localStorage.setItem('favorites', JSON.stringify(state.favorites));
+                if (state.editingItem && state.editingItem.id === id) closeModal();
+                render();
+            }
+        };
+
+
+        window.toggleFavorite = function (id) {
+            if (state.favorites.includes(id)) {
+                state.favorites = state.favorites.filter(fid => fid !== id);
+            } else {
+                state.favorites.push(id);
+            }
+            localStorage.setItem('favorites', JSON.stringify(state.favorites));
+            render();
+        };
+
+        window.setSearchQuery = function (val) {
+            state.searchQuery = val;
+            render();
+        };
+
+        window.setCategory = function (cat) {
+            state.selectedCategory = cat;
+            render();
+        };
+
+        function getCategoryStyle(cat) {
+            if (cat.includes('身体')) return state.isDarkMode ? 'bg-emerald-900/40 text-emerald-300 border-emerald-800' : 'bg-emerald-50 text-emerald-600 border-emerald-100';
+            if (cat.includes('感情')) return state.isDarkMode ? 'bg-rose-900/40 text-rose-300 border-rose-800' : 'bg-rose-50 text-rose-600 border-rose-100';
+            if (cat.includes('社会的')) return state.isDarkMode ? 'bg-blue-900/40 text-blue-300 border-blue-800' : 'bg-blue-50 text-blue-600 border-blue-100';
+            if (cat.includes('価値')) return state.isDarkMode ? 'bg-amber-900/40 text-amber-300 border-amber-800' : 'bg-amber-50 text-amber-600 border-amber-100';
+            return state.isDarkMode ? 'bg-purple-900/40 text-purple-300 border-purple-800' : 'bg-purple-50 text-purple-600 border-purple-100';
+        }
+
+        // --- AI/Breathing Actions ---
+        window.toggleBreathing = function () {
+            state.isBreathing = !state.isBreathing;
+            if (state.isBreathing) {
+                state.timer = 4;
+                state.breathPhase = '吸って';
+                startBreathLoop();
+            } else {
+                clearInterval(window.breathInterval);
+            }
+            render();
+        };
+
+        function startBreathLoop() {
+            clearInterval(window.breathInterval);
+            window.breathInterval = setInterval(() => {
+                state.timer--;
+                if (state.timer <= 0) {
+                    // Toggle Phase
+                    if (state.breathPhase === '吸って') {
+                        state.breathPhase = '吐いて';
+                        state.timer = 8; // Exhale 8s
+                    } else {
+                        state.breathPhase = '吸って';
+                        state.timer = 4; // Inhale 4s
+                    }
+                }
+                updateBreathingUI();
+            }, 1000);
+        }
+
+        function updateBreathingUI() {
+            const timerDisplay = document.getElementById('timer-display');
+            const breathBg = document.getElementById('breath-bg');
+            if (timerDisplay) {
+                timerDisplay.innerHTML = `<div><p class="text-xl font-medium text-indigo-600">${state.breathPhase}</p><p class="text-sm text-slate-400">${state.timer}s</p></div>`;
+            }
+            if (breathBg) {
+                breathBg.className = state.breathPhase === '吸って'
+                    ? "breath-ring absolute rounded-full inhale w-48 h-48"
+                    : "breath-ring absolute rounded-full exhale w-48 h-48";
+            }
+        }
+
+        window.handleMoodCheck = function () {
+            const input = document.getElementById('mood-input').value;
+            if (!input) return;
+
+            const story = HEALING_STORIES[Math.floor(Math.random() * HEALING_STORIES.length)];
+            const tip = ADVICES[Math.floor(Math.random() * ADVICES.length)];
+            const suggestions = [...state.copingList]
+                .sort(() => 0.5 - Math.random())
+                .slice(0, 3);
+
+            const resultArea = document.getElementById('mood-result');
+            const cardClass = state.isDarkMode ? "dark-glass" : "glass";
+
+            const suggestionsHtml = suggestions.map(item => `
+                <div class="flex items-center gap-2 p-3 ${state.isDarkMode ? 'bg-slate-800/50' : 'bg-white/50'} rounded-xl text-sm">
+                    <span class="${getCategoryStyle(item.category)} px-2 py-0.5 rounded text-[10px] whitespace-nowrap">${item.category}</span>
+                    <span class="truncate">${item.name}</span>
+                </div>
+            `).join('');
+
+            resultArea.innerHTML = `
+                <div class="animate-fade-in space-y-4 pb-10">
+                    <div class="bg-indigo-600 text-white p-6 rounded-[2rem] shadow-lg">
+                        <p class="text-xs uppercase tracking-widest opacity-70 mb-2">Healing Story</p>
+                        <p class="italic font-light leading-relaxed text-sm">${story}</p>
+                    </div>
+                    <div class="${cardClass} p-5 rounded-[2rem] border-2 border-indigo-100">
+                        <p class="text-xs font-bold text-indigo-500 uppercase tracking-widest mb-2">Advice</p>
+                        <p class="font-medium ${state.isDarkMode ? 'text-indigo-200' : 'text-indigo-900'}">${tip}</p>
+                    </div>
+                    <div class="${cardClass} p-5 rounded-[2rem]">
+                        <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Today's Suggestions</p>
+                        <div class="space-y-2">
+                            ${suggestionsHtml}
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            lucide.createIcons();
+        };
+
+        // --- Render Engine ---
+        function render() {
+            const mainContent = document.getElementById('main-content');
+            const quoteClass = state.isDarkMode ? "text-slate-300" : "text-slate-600";
+            const cardClass = state.isDarkMode ? "dark-glass" : "glass";
+            const inputClass = state.isDarkMode ? "bg-slate-800/50 text-slate-200" : "bg-white/60 text-slate-800";
+
+            // Modal Rendering
+            const modalContent = document.getElementById('modal-content');
+            if (modalContent) {
+                if (state.isDarkMode) {
+                    modalContent.className = "w-full max-w-sm bg-slate-800 text-white rounded-[2rem] p-6 shadow-2xl transition-all scale-95 opacity-0";
+                } else {
+                    modalContent.className = "w-full max-w-sm bg-white text-slate-800 rounded-[2rem] p-6 shadow-2xl transition-all scale-95 opacity-0";
+                }
+                modalContent.innerHTML = `
+                    <h3 class="text-lg font-bold mb-4">${state.editingItem ? "編集" : "追加"}</h3>
+                    <div class="space-y-3">
+                        <input id="item-name" placeholder="名前 (必須)" value="${state.editingItem?.name || ''}" class="w-full p-3 rounded-xl border-none ${state.isDarkMode ? 'bg-slate-700' : 'bg-slate-100'} outline-none" />
+                        <select id="item-category" class="w-full p-3 rounded-xl border-none ${state.isDarkMode ? 'bg-slate-700' : 'bg-slate-100'} outline-none">
+                             ${CATEGORIES.filter(c => c !== 'すべて' && c !== 'お気に入り').map(c => `<option value="${c}" ${state.editingItem?.category === c ? 'selected' : ''}>${c}</option>`).join('')}
+                        </select>
+                        <input id="item-time" placeholder="時間 (例: 10min)" value="${state.editingItem?.time || ''}" class="w-full p-3 rounded-xl border-none ${state.isDarkMode ? 'bg-slate-700' : 'bg-slate-100'} outline-none" />
+                    </div>
+                    <div class="flex gap-2 mt-6">
+                        <button onclick="closeModal()" class="flex-1 py-3 rounded-xl border ${state.isDarkMode ? 'border-slate-600 hover:bg-slate-700' : 'border-slate-200 hover:bg-slate-50'}">キャンセル</button>
+                        <button onclick="saveCopingItem()" class="flex-1 py-3 rounded-xl bg-indigo-500 text-white shadow-lg">保存</button>
+                    </div>
+                    ${state.editingItem ? `<button onclick="deleteCopingItem('${state.editingItem.id}')" class="w-full py-3 mt-2 text-rose-500 text-sm">この項目を削除</button>` : ''}
+                `;
+            }
+
+            if (state.view === 'home') {
+                mainContent.innerHTML = `
+                    <div class="flex flex-col items-center space-y-10 animate-fade-in py-10">
+                        <div class="${cardClass} p-8 rounded-[3rem] w-full text-center shadow-sm">
+                            <p class="text-lg italic ${quoteClass} leading-relaxed font-light">"${state.dailyQuote}"</p>
+                        </div>
+                        <div class="relative flex items-center justify-center">
+                            <div id="breath-bg" class="breath-ring absolute rounded-full bg-indigo-50/20 w-48 h-48"></div>
+                            <button onclick="toggleBreathing()" class="relative z-10 w-40 h-40 bg-white rounded-full flex flex-col items-center justify-center shadow-xl border-4 border-white">
+                                <div id="timer-display" class="text-center text-slate-400">
+                                    <i data-lucide="wind" class="mx-auto mb-1 w-8 h-8 opacity-40"></i>
+                                    <p class="text-sm">Start</p>
+                                </div>
+                            </button>
+                            <div class="absolute -bottom-12 text-xs text-slate-400 font-light tracking-widest uppercase">4s Inhale / 8s Exhale</div>
+                        </div>
+                    </div>
+                `;
+            }
+            else if (state.view === 'coping') {
+                // Filter Logic
+                const filtered = state.copingList.filter(item => {
+                    const matchesSearch = item.name.includes(state.searchQuery) || (item.tags && item.tags.some(t => t.includes(state.searchQuery)));
+                    const matchesCat = state.selectedCategory === "すべて" ||
+                        (state.selectedCategory === "お気に入り" ? state.favorites.includes(item.id) : item.category === state.selectedCategory);
+                    return matchesSearch && matchesCat;
+                });
+
+                // Render List
+                const listHtml = filtered.map(item => {
+                    const isFav = state.favorites.includes(item.id);
+                    const catStyle = getCategoryStyle(item.category);
+                    return `
+                    <div class="${cardClass} p-4 rounded-[2rem] flex justify-between items-start mb-3 border border-white/40 group relative">
+                        <div class="flex-1 cursor-pointer" onclick="openModal('${item.id}')">
+                            <h3 class="font-medium text-sm mb-2 ${state.isDarkMode ? 'text-slate-200' : 'text-slate-800'}">${item.name}</h3>
+                            <div class="flex flex-wrap gap-2">
+                                <span class="text-[10px] px-2 py-1 rounded-full border ${catStyle}">${item.category}</span>
+                                <span class="text-[10px] bg-slate-100/50 text-slate-500 px-2 py-1 rounded-full flex items-center gap-1"><i data-lucide="clock" class="w-3 h-3"></i>${item.time}</span>
+                            </div>
+                        </div>
+                        <div class="flex flex-col gap-2 pl-2">
+                             <button onclick="toggleFavorite('${item.id}')" class="${isFav ? 'text-rose-400' : 'text-slate-300'} hover:scale-110 transition-transform p-1">
+                                <i data-lucide="heart" class="w-5 h-5 ${isFav ? 'fill-current' : ''}"></i>
+                             </button>
+                             <button onclick="openModal('${item.id}')" class="text-slate-300 hover:text-indigo-400 p-1">
+                                <i data-lucide="edit-2" class="w-4 h-4"></i>
+                             </button>
+                        </div>
+                    </div>`;
+                }).join('');
+
+                const catsHtml = CATEGORIES.map(c =>
+                    `<button onclick="setCategory('${c}')" class="px-4 py-2 rounded-full text-xs border whitespace-nowrap transition-all shadow-sm ${state.selectedCategory === c ? 'bg-indigo-500 text-white border-indigo-500' : (state.isDarkMode ? 'bg-slate-800 text-slate-400 border-slate-700' : 'bg-white text-slate-500 border-slate-100')}">${c}</button>`
+                ).join('');
+
+                mainContent.innerHTML = `
+                    <div class="animate-fade-in space-y-4 h-full flex flex-col">
+                        <div class="sticky top-0 z-20 space-y-3 py-2 -mx-2 px-2 backdrop-blur-sm transition-colors">
+                            <div class="flex gap-2">
+                                <input oninput="setSearchQuery(this.value)" value="${state.searchQuery}" placeholder="検索..." class="flex-1 p-3 rounded-2xl border-none ${inputClass} outline-none placeholder-slate-400 shadow-sm" />
+                                <button onclick="openModal()" class="bg-indigo-500 text-white p-3 rounded-2xl shadow-lg hover:bg-indigo-600 transition-colors"><i data-lucide="plus" class="w-5 h-5"></i></button>
+                            </div>
+                            <div class="flex overflow-x-auto gap-2 py-1 no-scrollbar">
+                                ${catsHtml}
+                            </div>
+                        </div>
+                        <div class="overflow-y-auto pb-20 no-scrollbar">
+                            ${listHtml}
+                            ${filtered.length === 0 ? `<p class="text-center text-slate-400 text-sm mt-10">見つかりませんでした</p>` : ''}
+                        </div>
+                    </div>
+                `;
+            }
+            else if (state.view === 'mood') {
+                mainContent.innerHTML = `
+                    <div class="animate-fade-in space-y-6">
+                        <div class="${cardClass} p-6 rounded-[2.5rem]">
+                            <h2 class="text-lg font-medium mb-4 flex items-center gap-2 ${state.isDarkMode ? 'text-slate-200' : 'text-slate-800'}"><i data-lucide="sparkles" class="text-yellow-500"></i> 心のコンパス</h2>
+                            <textarea id="mood-input" placeholder="今の気持ちを教えて..." class="w-full h-24 p-4 rounded-3xl border-none ${inputClass} resize-none mb-4"></textarea>
+                            <button onclick="handleMoodCheck()" class="w-full py-4 bg-indigo-500 text-white rounded-2xl shadow-lg font-medium">相談する</button>
+                        </div>
+                        <div id="mood-result"></div>
+                    </div>
+                `;
+            }
+
+            // Sync Nav Buttons
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.className = `nav-btn p-3 rounded-full transition-colors ${state.isDarkMode ? 'text-slate-500 hover:text-slate-300' : 'text-slate-400 hover:text-indigo-400'}`;
+            });
+            const index = ['home', 'coping', 'mood'].indexOf(state.view);
+            if (index !== -1) {
+                const activeBtn = document.querySelectorAll('.nav-btn')[index];
+                if (state.isDarkMode) activeBtn.className = "nav-btn p-3 rounded-full bg-slate-800 text-indigo-300 shadow-inner";
+                else activeBtn.className = "nav-btn p-3 rounded-full bg-indigo-50 text-indigo-600 shadow-inner";
+            }
+
+            // Re-initialize Lucide Icons
+            lucide.createIcons();
+            if (state.isBreathing) updateBreathingUI();
+        }
+
+        // Start App
+        setTimeout(init, 50);
+    </script>
+</body>
+
+</html>
