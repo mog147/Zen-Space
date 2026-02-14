@@ -411,17 +411,16 @@
             `).join('');
 
             resultArea.innerHTML = `
-                <div class="animate-fade-in space-y-4 pb-10">
-                    <div class="bg-indigo-600 text-white p-6 rounded-[2rem] shadow-lg">
-                        <p class="text-xs uppercase tracking-widest opacity-70 mb-2">Healing Story</p>
-                        <p class="italic font-light leading-relaxed text-sm">${story}</p>
+                <div class="animate-fade-in space-y-5 pb-20">
+                    <div class="${state.isDarkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-100'} border p-5 rounded-2xl">
+                        <p class="text-[10px] text-slate-400 tracking-wider uppercase mb-2">Story</p>
+                        <p class="text-sm leading-relaxed font-light ${state.isDarkMode ? 'text-slate-300' : 'text-slate-600'}">${story}</p>
                     </div>
-                    <div class="${cardClass} p-5 rounded-[2rem] border-2 border-indigo-100">
-                        <p class="text-xs font-bold text-indigo-500 uppercase tracking-widest mb-2">Advice</p>
-                        <p class="font-medium ${state.isDarkMode ? 'text-indigo-200' : 'text-indigo-900'}">${tip}</p>
+                    <div class="${state.isDarkMode ? 'border-slate-700' : 'border-slate-100'} border-l-2 border-indigo-300 pl-4 py-1">
+                        <p class="text-sm ${state.isDarkMode ? 'text-slate-200' : 'text-slate-700'}">${tip}</p>
                     </div>
-                    <div class="${cardClass} p-5 rounded-[2rem]">
-                        <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Today's Suggestions</p>
+                    <div>
+                        <p class="text-[10px] text-slate-400 tracking-wider uppercase mb-3">Suggestions</p>
                         <div class="space-y-2">
                             ${suggestionsHtml}
                         </div>
@@ -533,11 +532,11 @@
             }
             else if (state.view === 'mood') {
                 mainContent.innerHTML = `
-                    <div class="animate-fade-in space-y-6">
-                        <div class="${cardClass} p-6 rounded-[2.5rem]">
-                            <h2 class="text-lg font-medium mb-4 flex items-center gap-2 ${state.isDarkMode ? 'text-slate-200' : 'text-slate-800'}"><i data-lucide="sparkles" class="text-yellow-500"></i> 心のコンパス</h2>
-                            <textarea id="mood-input" placeholder="今の気持ちを教えて..." class="w-full h-24 p-4 rounded-3xl border-none ${inputClass} resize-none mb-4"></textarea>
-                            <button onclick="handleMoodCheck()" class="w-full py-4 bg-indigo-500 text-white rounded-2xl shadow-lg font-medium">相談する</button>
+                    <div class="animate-fade-in space-y-6 pt-4">
+                        <div>
+                            <p class="text-xs text-slate-400 tracking-wider mb-3 font-light">心のコンパス</p>
+                            <textarea id="mood-input" placeholder="今の気持ちを教えて..." class="w-full h-28 p-4 rounded-2xl border ${state.isDarkMode ? 'border-slate-700 bg-slate-800/50 text-slate-200' : 'border-slate-200 bg-white text-slate-700'} resize-none text-sm outline-none mb-3"></textarea>
+                            <button onclick="handleMoodCheck()" class="w-full py-3 ${state.isDarkMode ? 'bg-slate-700 text-slate-200' : 'bg-slate-800 text-white'} rounded-xl text-sm font-medium transition-colors">相談する</button>
                         </div>
                         <div id="mood-result"></div>
                     </div>
