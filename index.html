@@ -510,15 +510,15 @@
                 }).join('');
 
                 const catsHtml = CATEGORIES.map(c =>
-                    `<button onclick="setCategory('${c}')" class="px-4 py-2 rounded-full text-xs border whitespace-nowrap transition-all shadow-sm ${state.selectedCategory === c ? 'bg-indigo-500 text-white border-indigo-500' : (state.isDarkMode ? 'bg-slate-800 text-slate-400 border-slate-700' : 'bg-white text-slate-500 border-slate-100')}">${c}</button>`
+                    `<button onclick="setCategory('${c}')" class="px-3 py-1.5 rounded-full text-[11px] whitespace-nowrap transition-all ${state.selectedCategory === c ? (state.isDarkMode ? 'bg-slate-700 text-white' : 'bg-slate-800 text-white') : (state.isDarkMode ? 'text-slate-500' : 'text-slate-400')}">${c}</button>`
                 ).join('');
 
                 mainContent.innerHTML = `
                     <div class="animate-fade-in space-y-4 h-full flex flex-col">
                         <div class="sticky top-0 z-20 space-y-3 py-2 -mx-2 px-2 backdrop-blur-sm transition-colors">
-                            <div class="flex gap-2">
-                                <input oninput="setSearchQuery(this.value)" value="${state.searchQuery}" placeholder="検索..." class="flex-1 min-w-0 p-3 rounded-2xl border-none ${inputClass} outline-none placeholder-slate-400 shadow-sm" />
-                                <button onclick="openModal()" class="flex-shrink-0 bg-indigo-500 text-white p-3 rounded-2xl shadow-lg hover:bg-indigo-600 transition-colors"><i data-lucide="plus" class="w-5 h-5"></i></button>
+                            <div class="flex gap-2 items-center">
+                                <input oninput="setSearchQuery(this.value)" value="${state.searchQuery}" placeholder="検索..." class="flex-1 min-w-0 px-3 py-2 rounded-xl text-sm border-none ${inputClass} outline-none placeholder-slate-400" />
+                                <button onclick="openModal()" class="flex-shrink-0 text-slate-400 hover:text-indigo-500 p-2 transition-colors"><i data-lucide="plus" class="w-5 h-5"></i></button>
                             </div>
                             <div class="flex overflow-x-auto gap-2 py-1 no-scrollbar">
                                 ${catsHtml}
