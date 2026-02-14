@@ -82,12 +82,10 @@
         class="min-h-screen w-full bg-gradient-to-br from-indigo-50 via-white to-pink-50 flex flex-col items-center p-6 transition-all duration-1000 text-slate-800">
 
         <!-- Header -->
-        <header class="w-full max-w-md flex justify-between items-center mb-6 mt-4 z-10">
-            <h1 class="text-2xl font-light tracking-widest opacity-80 uppercase">Zen Space</h1>
-            <div class="flex gap-2">
-                <button onclick="toggleDarkMode()" class="p-2 rounded-full glass text-indigo-400"><i data-lucide="sun"
-                        class="w-5 h-5"></i></button>
-            </div>
+        <header class="w-full max-w-md flex justify-between items-center mb-4 mt-2 z-10">
+            <h1 class="text-sm font-light tracking-[0.25em] opacity-60 uppercase">Zen Space</h1>
+            <button onclick="toggleDarkMode()" class="p-2 rounded-full opacity-40 hover:opacity-70 transition-opacity"><i data-lucide="sun"
+                    class="w-4 h-4"></i></button>
         </header>
 
         <!-- Main Content Area -->
@@ -240,10 +238,10 @@
 
             if (state.isDarkMode) {
                 app.className = "min-h-screen w-full bg-slate-900 flex flex-col items-center p-6 transition-all duration-1000 text-slate-100";
-                if (h1) h1.className = "text-2xl font-light tracking-widest text-indigo-300 opacity-80 uppercase";
+                if (h1) h1.className = "text-sm font-light tracking-[0.25em] text-slate-400 opacity-60 uppercase";
             } else {
                 app.className = "min-h-screen w-full bg-gradient-to-br from-indigo-50 via-white to-pink-50 flex flex-col items-center p-6 transition-all duration-1000 text-slate-800";
-                if (h1) h1.className = "text-2xl font-light tracking-widest text-indigo-900 opacity-80 uppercase";
+                if (h1) h1.className = "text-sm font-light tracking-[0.25em] text-slate-600 opacity-60 uppercase";
             }
             render();
         }
