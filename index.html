@@ -526,8 +526,8 @@
                     <div class="animate-fade-in space-y-4 h-full flex flex-col">
                         <div class="sticky top-0 z-20 space-y-3 py-2 -mx-2 px-2 backdrop-blur-sm transition-colors">
                             <div class="flex gap-2">
-                                <input oninput="setSearchQuery(this.value)" value="${state.searchQuery}" placeholder="検索..." class="flex-1 p-3 rounded-2xl border-none ${inputClass} outline-none placeholder-slate-400 shadow-sm" />
-                                <button onclick="openModal()" class="bg-indigo-500 text-white p-3 rounded-2xl shadow-lg hover:bg-indigo-600 transition-colors"><i data-lucide="plus" class="w-5 h-5"></i></button>
+                                <input oninput="setSearchQuery(this.value)" value="${state.searchQuery}" placeholder="検索..." class="flex-1 min-w-0 p-3 rounded-2xl border-none ${inputClass} outline-none placeholder-slate-400 shadow-sm" />
+                                <button onclick="openModal()" class="flex-shrink-0 bg-indigo-500 text-white p-3 rounded-2xl shadow-lg hover:bg-indigo-600 transition-colors"><i data-lucide="plus" class="w-5 h-5"></i></button>
                             </div>
                             <div class="flex overflow-x-auto gap-2 py-1 no-scrollbar">
                                 ${catsHtml}
