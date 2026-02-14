@@ -205,9 +205,9 @@
             dailyQuote: "",
             searchQuery: "",
             selectedCategory: "すべて",
-            // CRUD State
+            moodLogs: JSON.parse(localStorage.getItem('moodLogs') || '[]'),
             isModalOpen: false,
-            editingItem: null // null = create mode
+            editingItem: null
         };
 
         // Initialize coping list if empty
@@ -400,6 +400,12 @@
             const input = document.getElementById('mood-input').value;
             if (!input) return;
 
+            // Save mood log
+            const log = { text: input, date: new Date().toISOString() };
+            state.moodLogs.unshift(log);
+            if (state.moodLogs.length > 30) state.moodLogs = state.moodLogs.slice(0, 30);
+            localStorage.setItem('moodLogs', JSON.stringify(state.moodLogs));
+
             const story = HEALING_STORIES[Math.floor(Math.random() * HEALING_STORIES.length)];
             const tip = ADVICES[Math.floor(Math.random() * ADVICES.length)];
             const suggestions = [...state.copingList]
@@ -543,6 +549,20 @@
                             <button onclick="handleMoodCheck()" class="w-full py-3 ${state.isDarkMode ? 'bg-slate-700 text-slate-200' : 'bg-slate-800 text-white'} rounded-xl text-sm font-medium transition-colors">相談する</button>
                         </div>
                         <div id="mood-result"></div>
+                        ${state.moodLogs.length > 0 ? `
+                        <div class="pt-4">
+                            <p class="text-[10px] text-slate-400 tracking-wider uppercase mb-3">Recent</p>
+                            <div class="space-y-2">
+                                ${state.moodLogs.slice(0, 5).map(l => {
+                                    const d = new Date(l.date);
+                                    const dateStr = (d.getMonth()+1) + '/' + d.getDate();
+                                    return `<div class="flex items-start gap-3 py-2 border-b ${state.isDarkMode ? 'border-slate-800' : 'border-slate-100'}">
+                                        <span class="text-[10px] text-slate-400 flex-shrink-0 pt-0.5">${dateStr}</span>
+                                        <p class="text-xs ${state.isDarkMode ? 'text-slate-400' : 'text-slate-500'} line-clamp-2">${l.text}</p>
+                                    </div>`;
+                                }).join('')}
+                            </div>
+                        </div>` : ''}
                     </div>
                 `;
             }
