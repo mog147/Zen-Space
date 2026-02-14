@@ -198,6 +198,8 @@
             isBreathing: false,
             breathPhase: '吸って',
             timer: 4,
+            breathCycles: 0,
+            totalBreathCycles: parseInt(localStorage.getItem('totalBreathCycles') || '0'),
             copingList: JSON.parse(localStorage.getItem('copingList') || '[]'),
             favorites: JSON.parse(localStorage.getItem('favorites') || '[]'),
             dailyQuote: "",
@@ -352,6 +354,7 @@
             if (state.isBreathing) {
                 state.timer = 4;
                 state.breathPhase = '吸って';
+                state.breathCycles = 0;
                 startBreathLoop();
             } else {
                 clearInterval(window.breathInterval);
@@ -367,10 +370,13 @@
                     // Toggle Phase
                     if (state.breathPhase === '吸って') {
                         state.breathPhase = '吐いて';
-                        state.timer = 8; // Exhale 8s
+                        state.timer = 8;
                     } else {
                         state.breathPhase = '吸って';
-                        state.timer = 4; // Inhale 4s
+                        state.timer = 4;
+                        state.breathCycles++;
+                        state.totalBreathCycles++;
+                        localStorage.setItem('totalBreathCycles', state.totalBreathCycles);
                     }
                 }
                 updateBreathingUI();
@@ -474,6 +480,7 @@
                             </button>
                         </div>
                         <p class="text-[10px] text-slate-400 tracking-widest uppercase opacity-50">4s in · 8s out</p>
+                        ${state.totalBreathCycles > 0 ? `<p class="text-[10px] text-slate-400 mt-8 opacity-50">${state.totalBreathCycles} 回の深呼吸</p>` : ''}
                     </div>
                 `;
             }
